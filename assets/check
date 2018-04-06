@@ -1,0 +1,9 @@
+#!/usr/bin/env perl
+
+use FindBin '$Bin';
+use lib "$Bin";
+use Common;
+
+my @output=JSON->new->decode(Common::get_version_json(Common::get_last_version));
+
+print JSON->new->pretty->encode(\@output);

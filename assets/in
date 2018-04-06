@@ -1,0 +1,38 @@
+#!/usr/bin/env perl
+
+use FindBin '$Bin';
+use lib "$Bin";
+use Common;
+
+my $outdir = shift || die "Destination directory must be specified\n";
+
+chdir $outdir;
+
+my $rocksdb_version=Common::get_last_version;
+
+# defintion of the items to download.
+# each item is defined by an array [name,local archive,uri]
+my @items=(	["rocksdb",
+			 "rocksdb-${rocksdb_version}.tar.gz",
+			 "https://codeload.github.com/facebook/rocksdb/tar.gz/v${rocksdb_version}"
+			]);
+
+my @metadata=();
+
+for my $item (@items)
+{
+	my $name=@$item[0];
+	my $file=@$item[1];
+	my $url=@$item[2];
+	my $curl=`curl -o $file -L $url`;
+	my %hash;
+	$hash{'name'} = "$name uri";
+	$hash{'value'} = "$url";
+	push @metadata, {%hash};
+}	
+
+chdir $Bin;
+
+my %output=('version'=> JSON->new->decode(Common::get_version_json($rocksdb_version)),'metadata'=>[@metadata]);
+print JSON->new->pretty->encode(\%output);
+exit 0;

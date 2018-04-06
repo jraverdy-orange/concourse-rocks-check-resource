@@ -1,0 +1,6 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+die "This resource doesn't support OUT actions\n";
