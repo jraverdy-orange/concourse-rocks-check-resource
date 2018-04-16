@@ -27,10 +27,30 @@ sub get_last_version
 
 	my $force_version=$decoded->{'source'}{'version'};
 
-	my $json=`curl -s https://api.github.com/repos/facebook/rocksdb/releases/latest`
-		||die "information about last rocksdb stable version have not been found on provided address\n";
+	my $git_username=$decoded->{'source'}{'username'};
+	my $git_password=$decoded->{'source'}{'password'};
 
-	( my $current_stable_release = JSON->new->decode($json)->{'tag_name'}) =~ s/\D+([.\d+]*)/$1/g;
+    my $curl_opts="";
+	if ( $git_username ne "" )
+	{ 
+		$curl_opts = "--user \"${git_username}\":\"${git_password}\"";
+	}
+
+	if (!defined($force_version))
+	{
+		my $json=`curl ${curl_opts} https://api.github.com/repos/facebook/rocksdb/releases/latest`
+			||die "information about last rocksdb stable version have not been found on provided address\n";
+
+
+		my $current_stable_release="";
+	    my $tn=JSON->new->decode($json)->{'tag_name'};
+	    ( $current_stable_release = $tn ) =~ s/\D+([.\d+]*)/$1/g;
+			
+	}
+	else
+	{
+		$current_stable_release=$force_version
+	}
 
  	if ($current_stable_release ne "")
 	{
@@ -38,7 +58,7 @@ sub get_last_version
 		my $valid_tar=0;
 		my $http_status="ko";
 		my $archive_name="mongodb-src-r${current_stable_release}.tar.gz";
-		my @tar_info=`curl -sI https://codeload.github.com/facebook/rocksdb/tar.gz/v${current_stable_release}`;
+		my @tar_info=`curl -sI ${curl_opts} https://codeload.github.com/facebook/rocksdb/tar.gz/v${current_stable_release}`;
 
 		foreach my $i (@tar_info){
 			if ( $i =~ /HTTP\/1.1 200 OK/ ){$http_status="ok";}
@@ -48,6 +68,7 @@ sub get_last_version
 		if ($http_status eq "ko"){die "Download URL doesn't seem to be valid\n";}
 		if ( ! $valid_tar ){die "The file $archive_name on remote doesn't seem to be a valid archive\n";}
 	}
+
 	return "$current_stable_release";
 }
 

@@ -10,6 +10,8 @@ chdir $outdir;
 
 my $rocksdb_version=Common::get_last_version;
 
+if ($rocksdb_version==""){die "cannot fetch a valid rocksdb version\n";}
+
 # defintion of the items to download.
 # each item is defined by an array [name,local archive,uri]
 my @items=(	["rocksdb",
@@ -31,8 +33,20 @@ for my $item (@items)
 	push @metadata, {%hash};
 }	
 
-chdir $Bin;
+
 
 my %output=('version'=> JSON->new->decode(Common::get_version_json($rocksdb_version)),'metadata'=>[@metadata]);
+
+# putting metadatas into a file for future purposes
+
+open(my $fh, ">:encoding(UTF-8)", 'metadata')
+	    || die "Can't open UTF-8 encoded file metadata: $!\n";
+
+print $fh JSON->new->pretty->encode(\%output);
+ 
+close $fh;
+
+chdir $Bin;
+
 print JSON->new->pretty->encode(\%output);
 exit 0;
