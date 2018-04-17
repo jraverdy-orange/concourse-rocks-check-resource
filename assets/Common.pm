@@ -36,13 +36,13 @@ sub get_last_version
 		$curl_opts = "--user \"${git_username}\":\"${git_password}\"";
 	}
 
+	my $current_stable_release="";
+
 	if (!defined($force_version))
 	{
 		my $json=`curl ${curl_opts} https://api.github.com/repos/facebook/rocksdb/releases/latest`
 			||die "information about last rocksdb stable version have not been found on provided address\n";
 
-
-		my $current_stable_release="";
 	    my $tn=JSON->new->decode($json)->{'tag_name'};
 	    ( $current_stable_release = $tn ) =~ s/\D+([.\d+]*)/$1/g;
 			
